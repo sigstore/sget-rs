@@ -1,3 +1,3 @@
 module github.com/sigstore/sget
 
-go 1.15
+go 1.16
