@@ -13,29 +13,45 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::env;
-
+use clap::{App, Arg};
 fn main() {
+    let matches = App::new("sget")
+        .version("0.1")
+        .author("Sigstore Developers")
+        .about("Secure script retrieval and execution")
+        .license("Apache-2.0")
+        .arg(
+            Arg::new("oci-registry")
+                .about("OCI registry namespace")
+                .index(1),
+        )
+        .arg(
+            Arg::new("noexec")
+                .short('n')
+                .long("noexec")
+                .takes_value(false)
+                .requires("oci-registry")
+                .about("Do not execute script"),
+        )
+        .arg(
+            Arg::new("outfile")
+                .short('f')
+                .long("outfile")
+                .value_name("OUT_FILE")
+                .requires("oci-registry")
+                .about("Save script to file")
+                .takes_value(true),
+        )
+        .get_matches();
 
-    // Syntax : ./sget [--noExec] [--outFile path] url
-    // Example : ./sget --noExec --outFile /home/jyotsna/scripts https://cdn.jsdelivr.net/npm/vue/dist/vue.js 
+    if matches.is_present("noexec") {
+        println!("noexec was set");
+    }
 
-    let args: Vec<String> = env::args().collect();
-
-    let mut lowercase_element;
-    let mut out_file = false;
-    for element in args.iter() {
-        lowercase_element = element.to_lowercase();
-        if  lowercase_element == "--noexec"{
-            println!("Don't execute the script");
-        }
-        if out_file {
-            println!("output file path is {}",element);
-            out_file = false;
-        }
-        if  lowercase_element == "--outfile"{
-            out_file = true;
-        }
+    if let Some(o) = matches.value_of("oci-registry") {
+        println!("OCI registry: {}", o);
+    }
+    if let Some(f) = matches.value_of("outfile") {
+        println!("Output file: {}", f);
     }
 }
-
