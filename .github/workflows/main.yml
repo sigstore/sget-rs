@@ -26,12 +26,18 @@ jobs:
           with:
             command: build
             args: --release --all-features
-  clippy_check:
+  static_checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - run: rustup component add clippy
-      - uses: actions-rs/clippy-check@v1
+      - name: Check clippy
+        run: rustup component add clippy
+        uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --all-features
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+      - name: Check for panics
+        run: ./tests/nopanic.ci
+
