@@ -18,8 +18,10 @@ pub(crate) fn run_script(path: &str) -> Result<Option<i32>, Error> {
 
 #[test]
 fn execute_script_fail() {
-    match run_script("i_don't_exist.txt") {
-        Ok(_) => {}
+    match run_script("i_dont_exist.txt") {
+        Ok(result) => {
+            assert_ne!(result, Some(0));
+        }
         Err(err) => {
             assert_eq!(err.kind(), std::io::ErrorKind::NotFound);
         }
@@ -35,6 +37,8 @@ fn execute_script_success() {
         Ok(result) => {
             assert_eq!(result, Some(0));
         }
-        Err(err) => eprintln!("Error! {}", err)
+        Err(err) => {
+            assert_ne!(err.kind(), std::io::ErrorKind::NotFound);
+        }
     };
 }
