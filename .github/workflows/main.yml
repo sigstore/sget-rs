@@ -16,12 +16,17 @@ on:
 jobs:
   build_and_test:
       name: Rust project
-      runs-on: ubuntu-latest
+      strategy:
+        matrix:
+          os: [ ubuntu-latest, macOS-latest, windows-latest ]
+      runs-on: ${{ matrix.os }}
       steps:
         - uses: actions/checkout@v2
         - uses: actions-rs/toolchain@v1
           with:
             toolchain: stable
+        - name: check
+          run: cargo check --all
         - uses: actions-rs/cargo@v1
           with:
             command: build
@@ -40,7 +45,7 @@ jobs:
         uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features
+          args: --all-targets --all-features -- -D clippy::all
       - name: Check formatting
         run: cargo fmt --all -- --check
       - name: Check for panics
