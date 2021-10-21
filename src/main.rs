@@ -69,19 +69,4 @@ fn main() {
     if let Some(f) = matches.value_of("outfile") {
         println!("Output file: {}", f);
     }
-
-    // TODO: replace below with blob retrieved from OCI registry
-    // let mut dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    // dir.push("tests/test.sh");
-    // match utils::run_script(&dir.to_string_lossy()) {
-    //     Ok(result) => {
-    //         if result == Some(0) {
-    //             println!("\nsget script execution complete");
-    //         // Anything else apart from 0 is a failed exit code
-    //         } else {
-    //             eprintln!("\nsget script execution failed.");
-    //         }
-    //     }
-    //     Err(err) => eprintln!("Error! {}", err)
-    // };
 }
