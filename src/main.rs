@@ -47,7 +47,9 @@ fn main() {
         .get_matches();
 
     if !matches.is_present("noexec") {
-        println!("noexec was set");
+        // TODO: When we can retrieve the blob, remove the below two lines
+        // as these are temporary until we rig in the download / verify
+        // functions
         let mut dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         dir.push("tests/test.sh");
         match utils::run_script(&dir.to_string_lossy()) {

@@ -12,7 +12,6 @@ pub(crate) fn run_script(path: &str) -> Result<Option<i32>, Error> {
     // command.arg("some-flag");
 
     let output = command.execute_output()?;
-
     Ok(output.status.code())
 }
 
