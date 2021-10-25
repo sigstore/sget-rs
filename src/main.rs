@@ -44,7 +44,22 @@ fn main() {
                 .about("Save script to file")
                 .takes_value(true),
         )
+        .arg(
+            Arg::new("interactive")
+                .short('i')
+                .long("interactive")
+                .takes_value(false)
+                .conflicts_with("noexec")
+                .about("Displays executing script's stdout to console"),
+        )
         .get_matches();
+
+    if let Some(o) = matches.value_of("oci-registry") {
+        println!("OCI registry: {}", o);
+    }
+    if let Some(f) = matches.value_of("outfile") {
+        println!("Output file: {}", f);
+    }
 
     if !matches.is_present("noexec") {
         // TODO: When we can retrieve the blob, remove the below two lines
@@ -52,23 +67,9 @@ fn main() {
         // functions
         let mut dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         dir.push("tests/test.sh");
-        match utils::run_script(&dir.to_string_lossy()) {
-            Ok(result) => {
-                if result == Some(0) {
-                    println!("\nsget script execution complete");
-                // Anything else apart from 0 is a failed exit code
-                } else {
-                    eprintln!("\nsget script execution failed.");
-                }
-            }
-            Err(err) => eprintln!("Error! {}", err)
-        };
-    }
 
-    if let Some(o) = matches.value_of("oci-registry") {
-        println!("OCI registry: {}", o);
-    }
-    if let Some(f) = matches.value_of("outfile") {
-        println!("Output file: {}", f);
+        utils::run_script(&dir.to_string_lossy(), matches.is_present("interactive"))
+            .expect("\n sget script execution failed");
+        println!("\nsget script execution succeeded");
     }
 }
