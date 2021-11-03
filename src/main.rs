@@ -19,7 +19,7 @@ use std::env;
 use std::fs::File;
 use std::io::Write;
 
-async fn pull() {
+async fn pull(reference: Reference, file_name: &str) {
     let config = client::ClientConfig {
         protocol: client::ClientProtocol::Https,
         accept_invalid_hostnames: false,
@@ -27,7 +27,6 @@ async fn pull() {
         extra_root_certificates: Vec::new()
     };
     let mut client = Client::new(config);
-    let reference: Reference = "ghcr.io/jyotsna-penumaka/hello_sget:latest".parse().unwrap();
     let auth: RegistryAuth = RegistryAuth::Anonymous;
     let accepted_media_types = vec!["text/plain"];
     let image = client.pull(&reference, &auth, accepted_media_types)
@@ -40,13 +39,15 @@ async fn pull() {
     match image {
         Some(image) => {
             let cwd = env::current_dir().unwrap();
-            let file = File::create(cwd.join("sget.sh"));
+            let file = File::create(cwd.join(file_name));
             file.unwrap().write_all(&image[..]).ok();
             println!("Success! Pulled the script!");
         }
         None => println!("Error!"),
     }
 }
+
+// Example Usage: ./sget --noexec --outfile file.sh ghcr.io/jyotsna-penumaka/hello_sget:latest
 
 #[tokio::main]
 async fn main() {
@@ -89,5 +90,9 @@ async fn main() {
     if let Some(f) = matches.value_of("outfile") {
         println!("Output file: {}", f);
     }
-    pull().await;
+
+    // TO DO: need better error handling in place of unwrap
+    let reference: Reference = matches.value_of("oci-registry").unwrap().parse().unwrap();
+    let outfile = matches.value_of("outfile").unwrap();
+    pull(reference,outfile).await;
 }
