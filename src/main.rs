@@ -13,6 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+mod utils;
+
 use clap::{App, Arg};
 use oci_distribution::{Client,client,Reference,secrets::RegistryAuth};
 use std::env;
@@ -78,11 +80,15 @@ async fn main() {
                 .about("Save script to file")
                 .takes_value(true),
         )
+        .arg(
+            Arg::new("interactive")
+                .short('i')
+                .long("interactive")
+                .takes_value(false)
+                .conflicts_with("noexec")
+                .about("Displays executing script's stdout to console"),
+        )
         .get_matches();
-
-    if matches.is_present("noexec") {
-        println!("noexec was set");
-    }
 
     if let Some(o) = matches.value_of("oci-registry") {
         println!("OCI registry: {}", o);
@@ -95,4 +101,15 @@ async fn main() {
     let reference: Reference = matches.value_of("oci-registry").unwrap().parse().unwrap();
     let outfile = matches.value_of("outfile").unwrap();
     pull(reference,outfile).await;
+    if !matches.is_present("noexec") {
+        // TODO: When we can retrieve the blob, remove the below two lines
+        // as these are temporary until we rig in the download / verify
+        // functions
+        let mut dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        dir.push("tests/test.sh");
+
+        utils::run_script(&dir.to_string_lossy(), matches.is_present("interactive"))
+            .expect("\n sget script execution failed");
+        println!("\nsget script execution succeeded");
+    }
 }
