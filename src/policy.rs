@@ -1,4 +1,5 @@
 use serde_json::{Value};
+use serde_with::{serde_as, DisplayFromStr};
 use serde::{Serialize,Deserialize};
 use std::num::NonZeroU64;
 use std::collections::HashMap;
@@ -27,6 +28,7 @@ pub struct Signature {
 }
 
 // The root policy indicated the trusted root keys.
+#[serde_as]
 #[derive(Serialize, Deserialize, StructOpt)]
 pub struct Root {
     pub spec_version: String,
@@ -35,7 +37,9 @@ pub struct Root {
     pub expires: DateTime<Utc>,
     #[structopt(parse(try_from_str))]
     pub consistent_snapshot: bool,
+    #[serde_as(as = "HashMap<serde_with::json::JsonString, serde_with::json::JsonString>")]
     pub roles: HashMap<RoleType, RoleKeys>,
+    #[serde_as(as = "HashMap<_, serde_with::json::JsonString>")]
     pub keys: HashMap<String, Key>,
 }
 
@@ -46,6 +50,7 @@ pub struct RoleKeys {
     /// The threshold of signatures required to validate the role.
     pub threshold: NonZeroU64,
 }
+
 
 #[derive(PartialEq, Eq, Hash, Serialize, Deserialize)]
 /// The type of metadata role.
