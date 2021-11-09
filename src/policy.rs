@@ -1,11 +1,11 @@
-use std::io::Error;
-use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::{Value,Map};
+use serde::{Serialize,Deserialize};
 use std::num::NonZeroU64;
-use std::process::{Command, ExitStatus, Stdio};
+use chrono::{DateTime, FixedOffset, Utc};
+use structopt::StructOpt;
 
 // A signed root policy object
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize)]
 pub struct Policy {
     // A list of signatures.
     pub signatures: Vec<Signature>,
@@ -13,14 +13,8 @@ pub struct Policy {
     pub signed: Root,
 }
 
-impl fmt::Display for Policy {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", serde_json::to_string_pretty(self).unwrap())
-    }
-}
-
 // A signature and the key ID and certificate that made it.
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize)]
 pub struct Signature {
     // The hex encoded key ID that made this signature.
     pub keyid: String,
@@ -31,19 +25,20 @@ pub struct Signature {
 }
 
 // The root policy indicated the trusted root keys.
-#[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(tag = "_type")]
+#[derive(Serialize, Deserialize, StructOpt)]
 pub struct Root {
     pub spec_version: String,
     pub version: NonZeroU64,
     pub namespace: String,
-    pub expires: DateTime<Utc>,
+    #[structopt(parse(try_from_str = DateTime::parse_from_rfc3339))]
+    pub expires: DateTime<FixedOffset>,
+    #[structopt(parse(try_from_str))]
     pub consistent_snapshot: bool,
-    pub roles: HashMap<RoleType, RoleKeys>,
-    pub keys: HashMap<String, Key>,
+    pub roles: Map<RoleType, RoleKeys>,
+    pub keys: Map<String, Key>,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
+#[derive(Serialize, Deserialize)]
 pub struct RoleKeys {
     /// The key IDs used for the role.
     pub keyids: Vec<String>,
@@ -51,18 +46,15 @@ pub struct RoleKeys {
     pub threshold: NonZeroU64,
 }
 
+#[derive(Serialize, Deserialize)]
 /// The type of metadata role.
-#[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq, Eq, Hash)]
-#[serde(rename_all = "kebab-case")]
 pub enum RoleType {
     /// The root role delegates trust to specific keys trusted for all other top-level roles used in
     /// the system.
     Root,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
-#[serde(rename_all = "kebab-case")]
-#[serde(tag = "keytype")]
+#[derive(Serialize, Deserialize)]
 pub enum Key {
     /// A sigstore oidc key.
     SigstoreOidc {
@@ -72,20 +64,18 @@ pub enum Key {
         scheme: String,
         /// Any additional fields read during deserialization; will not be used.
         // TODO: key_hash_algorithms
-        #[serde(flatten)]
-        _extra: HashMap<String, Value>,
+        _extra: Map<String, Value>,
     },
 }
 
+#[derive(Serialize, Deserialize)]
 /// Represents a deserialized (decoded) SigstoreOidc public key.
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 pub struct SigstoreOidcKey {
     /// The identity (subject)
     pub identity: String,
     /// The issuer
     pub issuer: String,
 }
-
 
 #[test]
 fn parse_script_success() {
