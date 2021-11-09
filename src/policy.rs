@@ -1,11 +1,15 @@
 use serde_json::{Value};
-use serde_with::{serde_as, DisplayFromStr};
+use std::fs::File;
+use std::io::prelude::*;
+
+use serde_with::{serde_as};
 use serde::{Serialize,Deserialize};
 use std::num::NonZeroU64;
 use std::collections::HashMap;
 use serde_plain::{derive_display_from_serialize, derive_fromstr_from_deserialize};
 use chrono::{DateTime, Utc};
 use structopt::StructOpt;
+
 
 // A signed root policy object
 #[derive(Serialize, Deserialize)]
@@ -37,10 +41,9 @@ pub struct Root {
     pub expires: DateTime<Utc>,
     #[structopt(parse(try_from_str))]
     pub consistent_snapshot: bool,
-    #[serde_as(as = "HashMap<serde_with::json::JsonString, serde_with::json::JsonString>")]
-    pub roles: HashMap<RoleType, RoleKeys>,
-    #[serde_as(as = "HashMap<_, serde_with::json::JsonString>")]
-    pub keys: HashMap<String, Key>,
+    // TODO(asraa): Figure out how to add these HashMaps so that error trait FromStr is resolved.
+    //pub roles: HashMap<RoleType, RoleKeys>,
+    //pub keys: HashMap<String, Key>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -94,5 +97,10 @@ fn parse_script_success() {
     let mut dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     dir.push("tests/test_data/policy_good.json");
 
-    let policy: Policy = serde_json::from_str(&json_string).unwrap();
+    let mut file = File::open(&*dir.to_string_lossy()).unwrap();
+    let mut contents = String::new();
+    file.read_to_string(&mut contents).unwrap();
+
+    let policy: Policy = serde_json::from_str(&contents).unwrap();
+    assert_eq!(policy.signed.version,  NonZeroU64::new(1).unwrap())
 }
