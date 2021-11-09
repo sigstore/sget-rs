@@ -1,7 +1,9 @@
-use serde_json::{Value,Map};
+use serde_json::{Value};
 use serde::{Serialize,Deserialize};
 use std::num::NonZeroU64;
-use chrono::{DateTime, FixedOffset, Utc};
+use std::collections::HashMap;
+use serde_plain::{derive_display_from_serialize, derive_fromstr_from_deserialize};
+use chrono::{DateTime, Utc};
 use structopt::StructOpt;
 
 // A signed root policy object
@@ -30,12 +32,11 @@ pub struct Root {
     pub spec_version: String,
     pub version: NonZeroU64,
     pub namespace: String,
-    #[structopt(parse(try_from_str = DateTime::parse_from_rfc3339))]
-    pub expires: DateTime<FixedOffset>,
+    pub expires: DateTime<Utc>,
     #[structopt(parse(try_from_str))]
     pub consistent_snapshot: bool,
-    pub roles: Map<RoleType, RoleKeys>,
-    pub keys: Map<String, Key>,
+    pub roles: HashMap<RoleType, RoleKeys>,
+    pub keys: HashMap<String, Key>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -46,13 +47,16 @@ pub struct RoleKeys {
     pub threshold: NonZeroU64,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Hash, Serialize, Deserialize)]
 /// The type of metadata role.
 pub enum RoleType {
     /// The root role delegates trust to specific keys trusted for all other top-level roles used in
     /// the system.
     Root,
 }
+
+derive_display_from_serialize!(RoleType);
+derive_fromstr_from_deserialize!(RoleType);
 
 #[derive(Serialize, Deserialize)]
 pub enum Key {
@@ -64,9 +68,12 @@ pub enum Key {
         scheme: String,
         /// Any additional fields read during deserialization; will not be used.
         // TODO: key_hash_algorithms
-        _extra: Map<String, Value>,
+        _extra: HashMap<String, Value>,
     },
 }
+
+derive_display_from_serialize!(Key);
+derive_fromstr_from_deserialize!(Key);
 
 #[derive(Serialize, Deserialize)]
 /// Represents a deserialized (decoded) SigstoreOidc public key.
