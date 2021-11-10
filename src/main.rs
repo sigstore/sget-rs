@@ -14,6 +14,7 @@
 // limitations under the License.
 
 mod utils;
+mod policy;
 
 use clap::{App, Arg};
 fn main() {
