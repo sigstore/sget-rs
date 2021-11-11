@@ -92,6 +92,13 @@ pub struct SigstoreOidcKey {
     pub issuer: String,
 }
 
+fn validate_expires(contents: String) -> chrono::Duration {
+  let policy: Policy = serde_json::from_str(&contents).unwrap();
+  let expiry = policy.signed.expires;
+  let current = Utc::now();
+  return expiry.signed_duration_since(current);
+}
+
 #[test]
 fn parse_script_success() {
     let mut dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -114,11 +121,7 @@ fn validate_expiry_success() {
     let mut contents = String::new();
     file.read_to_string(&mut contents).unwrap();
 
-    let policy: Policy = serde_json::from_str(&contents).unwrap();
-    let expiry = policy.signed.expires;
-    let current = Utc::now();
-
-    let duration = expiry.signed_duration_since(current);
+    let duration = validate_expires(contents);
     assert_eq!(duration.to_std().is_err(), false);
 }
 
@@ -131,10 +134,6 @@ fn validate_expiry_failure() {
     let mut contents = String::new();
     file.read_to_string(&mut contents).unwrap();
 
-    let policy: Policy = serde_json::from_str(&contents).unwrap();
-    let expiry = policy.signed.expires;
-    let current = Utc::now();
-
-    let duration = expiry.signed_duration_since(current);
+    let duration = validate_expires(contents);
     assert_eq!(duration.to_std().is_err(), true);
 }
