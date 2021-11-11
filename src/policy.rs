@@ -32,18 +32,17 @@ pub struct Signature {
 }
 
 // The root policy indicated the trusted root keys.
-#[serde_as]
-#[derive(Serialize, Deserialize, StructOpt)]
+#[derive(Serialize, Deserialize)]
 pub struct Root {
     pub spec_version: String,
     pub version: NonZeroU64,
     pub namespace: String,
     pub expires: DateTime<Utc>,
-    #[structopt(parse(try_from_str))]
     pub consistent_snapshot: bool,
-    // TODO(asraa): Figure out how to add these HashMaps so that error trait FromStr is resolved.
+    // TODO: better define RoleType, right now it doesn't match the actual data
+    // The uncommended code will compile, but the unit test will fail because of the above
     //pub roles: HashMap<RoleType, RoleKeys>,
-    //pub keys: HashMap<String, Key>,
+    pub keys: HashMap<String, Key>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -53,7 +52,6 @@ pub struct RoleKeys {
     /// The threshold of signatures required to validate the role.
     pub threshold: NonZeroU64,
 }
-
 
 #[derive(PartialEq, Eq, Hash, Serialize, Deserialize)]
 /// The type of metadata role.
@@ -67,8 +65,10 @@ derive_display_from_serialize!(RoleType);
 derive_fromstr_from_deserialize!(RoleType);
 
 #[derive(Serialize, Deserialize)]
+#[serde(tag = "keytype")]
 pub enum Key {
     /// A sigstore oidc key.
+    #[serde(rename = "sigstore-oidc")]
     SigstoreOidc {
         /// The sigstore oidc key.
         keyval: SigstoreOidcKey,
@@ -76,6 +76,7 @@ pub enum Key {
         scheme: String,
         /// Any additional fields read during deserialization; will not be used.
         // TODO: key_hash_algorithms
+        #[serde(flatten)]
         _extra: HashMap<String, Value>,
     },
 }
