@@ -1,15 +1,10 @@
-use serde_json::{Value};
-use std::fs::File;
-use std::io::prelude::*;
+use serde_json::Value;
 
-use serde_with::{serde_as};
-use serde::{Serialize,Deserialize};
-use std::num::NonZeroU64;
-use std::collections::HashMap;
-use serde_plain::{derive_display_from_serialize, derive_fromstr_from_deserialize};
 use chrono::{DateTime, Utc};
-use structopt::StructOpt;
-
+use serde::{Deserialize, Serialize};
+use serde_plain::{derive_display_from_serialize, derive_fromstr_from_deserialize};
+use std::collections::HashMap;
+use std::num::NonZeroU64;
 
 // A signed root policy object
 #[derive(Serialize, Deserialize)]
@@ -93,15 +88,17 @@ pub struct SigstoreOidcKey {
     pub issuer: String,
 }
 
-#[test]
-fn parse_script_success() {
-    let mut dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    dir.push("tests/test_data/policy_good.json");
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    let mut file = File::open(&*dir.to_string_lossy()).unwrap();
-    let mut contents = String::new();
-    file.read_to_string(&mut contents).unwrap();
+    #[test]
+    fn parse_script_success() {
+        let mut fixture = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        fixture.push("tests/test_data/policy_good.json");
+        let raw_json = std::fs::read(fixture).expect("Cannot read test file");
 
-    let policy: Policy = serde_json::from_str(&contents).unwrap();
-    assert_eq!(policy.signed.version,  NonZeroU64::new(1).unwrap())
+        let policy: Policy = serde_json::from_slice(&raw_json).expect("Cannot deserialize Policy");
+        assert_eq!(policy.signed.version, NonZeroU64::new(1).unwrap())
+    }
 }
