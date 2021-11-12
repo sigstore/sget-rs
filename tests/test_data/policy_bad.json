@@ -1,0 +1,52 @@
+{
+    "signatures": [
+      {
+        "cert": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUNkVENDQWZ1Z0F3SUJBZ0lUVzZsMnQ3eE5GbVdpa1psR09uaVRIdXp3ZmpBS0JnZ3Foa2pPUFFRREF6QXEKTVJVd0V3WURWUVFLRXd4emFXZHpkRzl5WlM1a1pYWXhFVEFQQmdOVkJBTVRDSE5wWjNOMGIzSmxNQjRYRFRJeApNVEF3T0RFME16UTFNbG9YRFRJeE1UQXdPREUwTlRRMU1Wb3dBREJaTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5CkF3RUhBMElBQk8xMVVsaG1jOWU0NmVNdnl4dlRwYkxzamlyUnZHTnlQQTRIemw1eGNGckxqY3daTXlTZDFOVUcKQTgrTllyOVNRYmdxMHp2a2dMLzJWRFFqcktsK0VrNmpnZ0VvTUlJQkpEQU9CZ05WSFE4QkFmOEVCQU1DQjRBdwpFd1lEVlIwbEJBd3dDZ1lJS3dZQkJRVUhBd013REFZRFZSMFRBUUgvQkFJd0FEQWRCZ05WSFE0RUZnUVVqYVpUClVWb0dETzZEUHRwMW5oeGhLbS9GQ01rd0h3WURWUjBqQkJnd0ZvQVV5TVVkQUVHYUpDa3lVU1RyRGE1SzdVb0cKMCt3d2dZMEdDQ3NHQVFVRkJ3RUJCSUdBTUg0d2ZBWUlLd1lCQlFVSE1BS0djR2gwZEhBNkx5OXdjbWwyWVhSbApZMkV0WTI5dWRHVnVkQzAyTURObVpUZGxOeTB3TURBd0xUSXlNamN0WW1ZM05TMW1OR1kxWlRnd1pESTVOVFF1CmMzUnZjbUZuWlM1bmIyOW5iR1ZoY0dsekxtTnZiUzlqWVRNMllURmxPVFl5TkRKaU9XWmpZakUwTmk5allTNWoKY25Rd0h3WURWUjBSQVFIL0JCVXdFNEVSYkdocGJtUnpRSEpsWkdoaGRDNWpiMjB3Q2dZSUtvWkl6ajBFQXdNRAphQUF3WlFJeEFQRWlVV0dpeng3SnU5NjlMcEp3WUpHV2dldXVwMFRvb0MxaGlMaVNBVlpFMTdZN2Z6TEMyalRtCkIzOFpDTnFpeXdJd2ZIZUs2R281U1NGWUdreHV6d0hBdjFUNVhZTjFMaENaMk9xNTdjNGVDd1Y1TnVtNG9IME8KVy9ZZm9rZ1YvVzFCCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K",
+        "keyid": "5cc3f87d85b1a8f9ec3a4f4e552af9d6926381f87774b4a098cc4dd10498634c",
+        "sig": "MEUCIGNLk/l0Dr2eMTYfB8cshSBMzW+hJDY9gKckcPlBu1ezAiEAkcqfS/+dlC1fLJyNd1++B+uLO4UG1twN/p1/2PfzRm8="
+      }
+    ],
+    "signed": {
+      "_type": "root",
+      "consistent_snapshot": true,
+      "expires": "2020-01-08T15:33:26Z",
+      "keys": {
+        "5cc3f87d85b1a8f9ec3a4f4e552af9d6926381f87774b4a098cc4dd10498634c": {
+          "keyid_hash_algorithms": [
+            "sha256",
+            "sha512"
+          ],
+          "keytype": "sigstore-oidc",
+          "keyval": {
+            "identity": "lhinds@redhat.com",
+            "issuer": ""
+          },
+          "scheme": "https://fulcio.sigstore.dev"
+        },
+        "a27a1b676cce5db68748c1a34f3456edb7c800fc8a7a3303330b413ce2cb4e3e": {
+          "keyid_hash_algorithms": [
+            "sha256",
+            "sha512"
+          ],
+          "keytype": "sigstore-oidc",
+          "keyval": {
+            "identity": "kim@example.com",
+            "issuer": ""
+          },
+          "scheme": "https://fulcio.sigstore.dev"
+        }
+      },
+      "namespace": "ghcr.io/lukehinds/cosign123",
+      "roles": {
+        "root": {
+          "keyids": [
+            "5cc3f87d85b1a8f9ec3a4f4e552af9d6926381f87774b4a098cc4dd10498634c",
+            "a27a1b676cce5db68748c1a34f3456edb7c800fc8a7a3303330b413ce2cb4e3e"
+          ],
+          "threshold": 2
+        }
+      },
+      "spec_version": "1.0",
+      "version": 1
+    }
+  }

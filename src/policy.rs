@@ -88,6 +88,12 @@ pub struct SigstoreOidcKey {
     pub issuer: String,
 }
 
+fn validate_expires(policy: Policy) -> chrono::Duration {
+  let expiry = policy.signed.expires;
+  let current = Utc::now();
+  return expiry.signed_duration_since(current);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -100,5 +106,27 @@ mod tests {
 
         let policy: Policy = serde_json::from_slice(&raw_json).expect("Cannot deserialize Policy");
         assert_eq!(policy.signed.version, NonZeroU64::new(1).unwrap())
+    }
+  
+    #[test]
+    fn validate_expiry_success() {
+        let mut fixture = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        fixture.push("tests/test_data/policy_good.json");
+        let raw_json = std::fs::read(fixture).expect("Cannot read test file");
+        let policy: Policy = serde_json::from_slice(&raw_json).expect("Cannot deserialize Policy");
+      
+        let duration = validate_expires(policy);
+        assert_eq!(duration.to_std().is_err(), false);
+    }
+  
+    #[test]
+    fn validate_expiry_failure() {
+        let mut fixture = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        fixture.push("tests/test_data/policy_bad.json");
+        let raw_json = std::fs::read(fixture).expect("Cannot read test file");
+        let policy: Policy = serde_json::from_slice(&raw_json).expect("Cannot deserialize Policy");
+      
+        let duration = validate_expires(policy);
+        assert_eq!(duration.to_std().is_err(), true);
     }
 }
