@@ -1,5 +1,7 @@
 # sget
 
+[![CI](https://github.com/sigstore/sget/actions/workflows/main.yml/badge.svg)](https://github.com/sigstore/sget/actions/workflows/main.yml)
+
 > :warning: Not ready for use yet! :warning:  
 
 sget is a keyless safe script retrieval and execution tool.
