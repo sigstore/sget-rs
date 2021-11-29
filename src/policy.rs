@@ -1,10 +1,9 @@
-use serde_json::Value;
-
+use anyhow::{anyhow, Error, Result};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use serde_plain::{derive_display_from_serialize, derive_fromstr_from_deserialize};
-use std::collections::HashMap;
-use std::num::NonZeroU64;
+use std::{collections::HashMap, convert::TryFrom, num::NonZeroU64};
 
 // A signed root policy object
 #[derive(Serialize, Deserialize)]
@@ -12,7 +11,7 @@ pub struct Policy {
     // A list of signatures.
     pub signatures: Vec<Signature>,
     // The root policy that is signed.
-    pub signed: Root,
+    pub signed: Signed,
 }
 
 impl Policy {
@@ -34,16 +33,14 @@ pub struct Signature {
 
 // The root policy indicated the trusted root keys.
 #[derive(Serialize, Deserialize)]
-pub struct Root {
+pub struct Signed {
+    pub consistent_snapshot: bool,
+    pub expires: DateTime<Utc>,
+    pub keys: HashMap<String, Key>,
+    pub namespace: String,
+    pub roles: HashMap<String, RoleKeys>,
     pub spec_version: String,
     pub version: NonZeroU64,
-    pub namespace: String,
-    pub expires: DateTime<Utc>,
-    pub consistent_snapshot: bool,
-    // TODO: better define RoleType, right now it doesn't match the actual data
-    // The uncommended code will compile, but the unit test will fail because of the above
-    //pub roles: HashMap<RoleType, RoleKeys>,
-    pub keys: HashMap<String, Key>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -60,6 +57,16 @@ pub enum RoleType {
     /// The root role delegates trust to specific keys trusted for all other top-level roles used in
     /// the system.
     Root,
+}
+
+impl TryFrom<&str> for RoleType {
+    type Error = Error;
+    fn try_from(s: &str) -> Result<Self> {
+        match s {
+            "Root" => Ok(RoleType::Root),
+            other => Err(anyhow!("Unknown RoleType: {}", other)),
+        }
+    }
 }
 
 derive_display_from_serialize!(RoleType);
