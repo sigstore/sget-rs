@@ -35,16 +35,16 @@ async fn pull(reference: Reference, file_name: &str) {
     let image = client
         .pull(&reference, &auth, accepted_media_types)
         .await
-        .unwrap()
+        .unwrap() //#[allow_ci]
         .layers
         .into_iter()
         .next()
         .map(|layer| layer.data);
     match image {
         Some(image) => {
-            let cwd = env::current_dir().unwrap();
+            let cwd = env::current_dir().unwrap(); //#[allow_ci]
             let file = File::create(cwd.join(file_name));
-            file.unwrap().write_all(&image[..]).ok();
+            file.unwrap().write_all(&image[..]).ok(); //#[allow_ci]
             println!("Success! Pulled the script!");
         }
         None => println!("Error!"),
@@ -100,8 +100,8 @@ async fn main() {
     }
 
     // TO DO: need better error handling in place of unwrap
-    let reference: Reference = matches.value_of("oci-registry").unwrap().parse().unwrap();
-    let outfile = matches.value_of("outfile").unwrap();
+    let reference: Reference = matches.value_of("oci-registry").unwrap().parse().unwrap(); //#[allow_ci]
+    let outfile = matches.value_of("outfile").unwrap(); //#[allow_ci]
     pull(reference, outfile).await;
     if !matches.is_present("noexec") {
         // TODO: When we can retrieve the blob, remove the below two lines

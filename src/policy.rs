@@ -105,7 +105,7 @@ mod tests {
         let raw_json = std::fs::read(fixture).expect("Cannot read test file");
 
         let policy: Policy = serde_json::from_slice(&raw_json).expect("Cannot deserialize Policy");
-        assert_eq!(policy.signed.version, NonZeroU64::new(1).unwrap())
+        assert_eq!(policy.signed.version, NonZeroU64::new(1).unwrap()) //#[allow_ci]
     }
 
     #[test]
