@@ -97,36 +97,64 @@ pub struct SigstoreOidcKey {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::{
+        fs::read,
+        path::{Path, PathBuf},
+    };
+
+    const CRATE: &str = env!("CARGO_MANIFEST_DIR");
+
+    struct Setup {
+        good_policy: PathBuf,
+        bad_policy: PathBuf,
+    }
+
+    impl Setup {
+        fn new() -> Self {
+            let good_policy = Path::new(CRATE).join("tests/test_data/policy_good.json");
+            let bad_policy = Path::new(CRATE).join("tests/test_data/policy_bad.json");
+
+            Self {
+                good_policy,
+                bad_policy,
+            }
+        }
+
+        fn read_good_policy(&self) -> Policy {
+            let raw_json = read(&self.good_policy).expect("Cannot read good policy file");
+            serde_json::from_slice(&raw_json).expect("Cannot deserialize policy")
+        }
+
+        fn read_bad_policy(&self) -> Policy {
+            let raw_json = read(&self.bad_policy).expect("Cannot read bad policy file");
+            serde_json::from_slice(&raw_json).expect("Cannot deserialize policy")
+        }
+    }
+
+    #[test]
+    fn deserialize() {
+        let setup = Setup::new();
+        setup.read_good_policy();
+    }
 
     #[test]
     fn parse_script_success() {
-        let mut fixture = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        fixture.push("tests/test_data/policy_good.json");
-        let raw_json = std::fs::read(fixture).expect("Cannot read test file");
-
-        let policy: Policy = serde_json::from_slice(&raw_json).expect("Cannot deserialize Policy");
+        let setup = Setup::new();
+        let policy = setup.read_good_policy();
         assert_eq!(policy.signed.version, NonZeroU64::new(1).unwrap()) //#[allow_ci]
     }
 
     #[test]
     fn validate_expiry_success() {
-        let mut fixture = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        fixture.push("tests/test_data/policy_good.json");
-        let raw_json = std::fs::read(fixture).expect("Cannot read test file");
-        let policy: Policy = serde_json::from_slice(&raw_json).expect("Cannot deserialize Policy");
-
-        let duration = policy.validate_expires();
-        assert!(!duration.to_std().is_err());
+        let setup = Setup::new();
+        let policy = setup.read_good_policy();
+        assert!(!policy.validate_expires().to_std().is_err());
     }
 
     #[test]
     fn validate_expiry_failure() {
-        let mut fixture = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        fixture.push("tests/test_data/policy_bad.json");
-        let raw_json = std::fs::read(fixture).expect("Cannot read test file");
-        let policy: Policy = serde_json::from_slice(&raw_json).expect("Cannot deserialize Policy");
-
-        let duration = policy.validate_expires();
-        assert!(duration.to_std().is_err());
+        let setup = Setup::new();
+        let policy = setup.read_bad_policy();
+        assert!(policy.validate_expires().to_std().is_err());
     }
 }
