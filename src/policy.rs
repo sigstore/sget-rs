@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Error, Result};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::{value::RawValue, Value};
 use serde_plain::{derive_display_from_serialize, derive_fromstr_from_deserialize};
 use std::{collections::HashMap, convert::TryFrom, num::NonZeroU64};
 
@@ -18,6 +18,17 @@ impl Policy {
     pub fn validate_expires(&self) -> chrono::Duration {
         self.signed.expires.signed_duration_since(Utc::now())
     }
+}
+
+// This holds the raw data from a serialized policy, accessible via the
+// 'signatures' and 'signed' fields. We must preserve this data as RawValues
+// in order for signature verification to work.
+#[derive(Serialize, Deserialize)]
+struct RawPolicy<'a> {
+    #[serde(borrow)]
+    pub signatures: &'a RawValue,
+    #[serde(borrow)]
+    pub signed: &'a RawValue,
 }
 
 // A signature and the key ID and certificate that made it.
