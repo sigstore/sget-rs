@@ -32,5 +32,5 @@ fn execute_script_success() {
     dir.push("tests/test.sh");
 
     let res = run_script(&dir.to_string_lossy(), false);
-    assert!(res.unwrap().success());
+    assert!(res.unwrap().success()); //#[allow_ci]
 }
