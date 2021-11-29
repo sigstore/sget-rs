@@ -13,11 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+pub mod policy;
 mod utils;
-mod policy;
 
 use clap::{App, Arg};
-use oci_distribution::{Client,client,Reference,secrets::RegistryAuth};
+use oci_distribution::{client, secrets::RegistryAuth, Client, Reference};
 use std::env;
 use std::fs::File;
 use std::io::Write;
@@ -27,18 +27,19 @@ async fn pull(reference: Reference, file_name: &str) {
         protocol: client::ClientProtocol::Https,
         accept_invalid_hostnames: false,
         accept_invalid_certificates: false,
-        extra_root_certificates: Vec::new()
+        extra_root_certificates: Vec::new(),
     };
     let mut client = Client::new(config);
     let auth: RegistryAuth = RegistryAuth::Anonymous;
     let accepted_media_types = vec!["text/plain"];
-    let image = client.pull(&reference, &auth, accepted_media_types)
-            .await
-            .unwrap()
-            .layers
-            .into_iter()
-            .next()
-            .map(|layer| layer.data);
+    let image = client
+        .pull(&reference, &auth, accepted_media_types)
+        .await
+        .unwrap()
+        .layers
+        .into_iter()
+        .next()
+        .map(|layer| layer.data);
     match image {
         Some(image) => {
             let cwd = env::current_dir().unwrap();
@@ -101,7 +102,7 @@ async fn main() {
     // TO DO: need better error handling in place of unwrap
     let reference: Reference = matches.value_of("oci-registry").unwrap().parse().unwrap();
     let outfile = matches.value_of("outfile").unwrap();
-    pull(reference,outfile).await;
+    pull(reference, outfile).await;
     if !matches.is_present("noexec") {
         // TODO: When we can retrieve the blob, remove the below two lines
         // as these are temporary until we rig in the download / verify
