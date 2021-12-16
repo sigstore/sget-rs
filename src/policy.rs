@@ -61,10 +61,10 @@ impl Policy {
 
         // Check 1 : verifies that the leaf cert's issuer matches the root cert's subject field.
         if root_cert.issued(&leaf_cert) != X509VerifyResult::OK {
-            panic!("Invalid issuer relationship in certificate chain.");
+            return Ok(false);
         }
 
-        let mut chain = Stack::new().unwrap();
+        let mut chain = Stack::new()?; 
         let _ = chain.push(leaf_cert.clone());
 
         let mut store_bldr = store::X509StoreBuilder::new()?;
@@ -282,9 +282,9 @@ mod tests {
         let policy = setup.read_good_policy();
 
         let root_cert = std::include_bytes!("../tests/test_data/fulcio_root.pem");
-        let root_cert = X509::from_pem(root_cert).unwrap();
+        let root_cert = X509::from_pem(root_cert).unwrap(); //#[allow_ci]
 
-        let fulcio = policy.verify_fulcio_chain(root_cert).unwrap();
+        let fulcio = policy.verify_fulcio_chain(root_cert).unwrap(); //#[allow_ci]
         assert!(fulcio);
     }
 }
