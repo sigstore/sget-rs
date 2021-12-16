@@ -68,7 +68,7 @@ impl Policy {
         let _ = chain.push(leaf_cert.clone());
 
         let mut store_bldr = store::X509StoreBuilder::new()?;
-        store_bldr.add_cert(root_cert.clone())?;
+        store_bldr.add_cert(root_cert)?;
 
         let mut flags = openssl::x509::verify::X509VerifyFlags::empty();
         flags.insert(openssl::x509::verify::X509VerifyFlags::NO_CHECK_TIME);
@@ -285,6 +285,6 @@ mod tests {
         let root_cert = X509::from_pem(root_cert).unwrap();
 
         let fulcio = policy.verify_fulcio_chain(root_cert).unwrap();
-        assert_eq!(fulcio, true);
+        assert!(fulcio);
     }
 }
