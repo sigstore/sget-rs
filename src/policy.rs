@@ -64,7 +64,7 @@ impl Policy {
             return Ok(false);
         }
 
-        let mut chain = Stack::new()?; 
+        let mut chain = Stack::new()?;
         let _ = chain.push(leaf_cert.clone());
 
         let mut store_bldr = store::X509StoreBuilder::new()?;
