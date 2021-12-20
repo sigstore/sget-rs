@@ -15,41 +15,10 @@
 
 pub mod policy;
 mod utils;
+mod oci;
 
 use clap::{App, Arg};
-use oci_distribution::{client, secrets::RegistryAuth, Client, Reference};
 use std::env;
-use std::fs::File;
-use std::io::Write;
-
-async fn pull(reference: Reference, file_name: &str) {
-    let config = client::ClientConfig {
-        protocol: client::ClientProtocol::Https,
-        accept_invalid_hostnames: false,
-        accept_invalid_certificates: false,
-        extra_root_certificates: Vec::new(),
-    };
-    let mut client = Client::new(config);
-    let auth: RegistryAuth = RegistryAuth::Anonymous;
-    let accepted_media_types = vec!["text/plain"];
-    let image = client
-        .pull(&reference, &auth, accepted_media_types)
-        .await
-        .unwrap() //#[allow_ci]
-        .layers
-        .into_iter()
-        .next()
-        .map(|layer| layer.data);
-    match image {
-        Some(image) => {
-            let cwd = env::current_dir().unwrap(); //#[allow_ci]
-            let file = File::create(cwd.join(file_name));
-            file.unwrap().write_all(&image[..]).ok(); //#[allow_ci]
-            println!("Success! Pulled the script!");
-        }
-        None => println!("Error!"),
-    }
-}
 
 // Example Usage: ./sget --noexec --outfile file.sh ghcr.io/jyotsna-penumaka/hello_sget:latest
 
@@ -92,21 +61,12 @@ async fn main() {
         )
         .get_matches();
 
-    if let Some(o) = matches.value_of("oci-registry") {
-        println!("OCI registry: {}", o);
-    }
-    if let Some(f) = matches.value_of("outfile") {
-        println!("Output file: {}", f);
-    }
-
     // TO DO: need better error handling in place of unwrap
-    let reference: Reference = matches.value_of("oci-registry").unwrap().parse().unwrap(); //#[allow_ci]
+    let reference = matches.value_of("oci-registry").expect("image reference failed");
     let outfile = matches.value_of("outfile").unwrap(); //#[allow_ci]
-    pull(reference, outfile).await;
+
+    oci::blob_pull(reference, outfile).await;
     if !matches.is_present("noexec") {
-        // TODO: When we can retrieve the blob, remove the below two lines
-        // as these are temporary until we rig in the download / verify
-        // functions
         let mut dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         dir.push("tests/test.sh");
 
