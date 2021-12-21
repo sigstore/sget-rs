@@ -40,6 +40,7 @@ async fn main() {
                 .long("noexec")
                 .takes_value(false)
                 .requires("oci-registry")
+                .requires("outfile")
                 .about("Do not execute script"),
         )
         .arg(
