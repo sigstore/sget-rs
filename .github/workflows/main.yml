@@ -25,6 +25,38 @@ jobs:
         - uses: actions-rs/toolchain@v1
           with:
             toolchain: stable
+        - name: Cache vcpkg installed
+          uses: actions/cache@v1.0.3
+          if: matrix.os == 'windows-latest'
+          with:
+            path: $VCPKG_ROOT/installed
+            key: ${{ runner.os }}-vcpkg-cache-${{ matrix.db-backend }}
+          env:
+            VCPKG_ROOT: 'C:\vcpkg'
+
+        - name: Cache vcpkg downloads
+          uses: actions/cache@v1.0.3
+          if: matrix.os == 'windows-latest'
+          with:
+            path: $VCPKG_ROOT/downloads
+            key: ${{ runner.os }}-vcpkg-cache-${{ matrix.db-backend }}
+          env:
+            VCPKG_ROOT: 'C:\vcpkg'
+
+        - name: Install dependencies Windows
+          run: vcpkg integrate install; vcpkg install openssl:x64-windows
+          if: matrix.os == 'windows-latest'
+          env:
+            VCPKG_ROOT: 'C:\vcpkg'
+
+        - name: Install dependencies macOS
+          run: brew update; brew install openssl
+          if: matrix.os == 'macOS-latest'
+
+        - name: Install dependencies Ubuntu
+          run: sudo apt-get update && sudo apt-get install --no-install-recommends openssl
+          if: matrix.os == 'ubuntu-latest'
+
         - name: check
           run: cargo check --all
         - uses: actions-rs/cargo@v1
@@ -48,4 +80,3 @@ jobs:
         run: cargo fmt --all -- --check
       - name: Check for panics
         run: ./tests/nopanic.ci
-
