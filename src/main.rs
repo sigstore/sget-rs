@@ -72,7 +72,9 @@ async fn main() {
         Ok(_) => {
             println!("Successfully retrieved file");
         }
-        Err(e) => {println!("File retrieval failed: {}", e);}
+        Err(e) => {
+            println!("File retrieval failed: {}", e);
+        }
     }
     if !matches.is_present("noexec") {
         let mut dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));

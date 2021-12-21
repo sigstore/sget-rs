@@ -1,8 +1,8 @@
-use std::fs::File;
-use std::io::Write;
-use std::env;
 use anyhow::Result;
 use oci_distribution::{client, secrets::RegistryAuth, Client, Reference};
+use std::env;
+use std::fs::File;
+use std::io::Write;
 
 pub async fn blob_pull(reference: &str, file_name: &str) -> Result<(), anyhow::Error> {
     let reference: Reference = reference.parse().expect("Invalid reference");
