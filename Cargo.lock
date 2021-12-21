@@ -1310,7 +1310,6 @@ dependencies = [
  "ecdsa",
  "oci-distribution",
  "p256",
- "rand",
  "serde",
  "serde_json",
  "serde_plain",
