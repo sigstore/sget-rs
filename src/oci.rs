@@ -1,9 +1,10 @@
 use std::fs::File;
 use std::io::Write;
 use std::env;
+use anyhow::Result;
 use oci_distribution::{client, secrets::RegistryAuth, Client, Reference};
 
-pub async fn blob_pull(reference: &str, file_name: &str) {
+pub async fn blob_pull(reference: &str, file_name: &str) -> Result<(), anyhow::Error> {
     let reference: Reference = reference.parse().expect("Invalid reference");
     let config = client::ClientConfig {
         protocol: client::ClientProtocol::Https,
@@ -16,20 +17,18 @@ pub async fn blob_pull(reference: &str, file_name: &str) {
     let accepted_media_types = vec!["text/plain"];
     let image = client
         .pull(&reference, &auth, accepted_media_types)
-        .await
-        .unwrap() //#[allow_ci]
+        .await?
         .layers
         .into_iter()
         .next()
         .map(|layer| layer.data);
-    // print image variable
     match image {
         Some(image) => {
-            let cwd = env::current_dir().unwrap(); //#[allow_ci]
+            let cwd = env::current_dir()?;
             let file = File::create(cwd.join(file_name));
             file.unwrap().write_all(&image[..]).ok(); //#[allow_ci]
-            println!("Success! Pulled the script!");
+            Ok(())
         }
-        None => println!("Error!"),
+        None => Err(anyhow::anyhow!("Failed to processs file")),
     }
 }

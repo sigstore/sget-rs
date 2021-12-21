@@ -13,9 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+mod oci;
 pub mod policy;
 mod utils;
-mod oci;
 
 use clap::{App, Arg};
 use std::env;
@@ -62,16 +62,24 @@ async fn main() {
         .get_matches();
 
     // TO DO: need better error handling in place of unwrap
-    let reference = matches.value_of("oci-registry").expect("image reference failed");
+    let reference = matches
+        .value_of("oci-registry")
+        .expect("image reference failed");
     let outfile = matches.value_of("outfile").unwrap(); //#[allow_ci]
 
-    oci::blob_pull(reference, outfile).await;
+    let result = oci::blob_pull(reference, outfile).await;
+    match result {
+        Ok(_) => {
+            println!("Successfully retrieved file");
+        }
+        Err(e) => {println!("File retrieval failed: {}", e);}
+    }
     if !matches.is_present("noexec") {
         let mut dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         dir.push("tests/test.sh");
 
         utils::run_script(&dir.to_string_lossy(), matches.is_present("interactive"))
-            .expect("\n sget script execution failed");
-        println!("\nsget script execution succeeded");
+            .expect("\n sget execution failed");
+        println!("\nsget execution succeeded");
     }
 }
