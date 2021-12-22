@@ -4,10 +4,13 @@
 
 > :warning: Not ready for use yet! :warning:  
 
-sget is a keyless safe script retrieval and execution tool.
+sget is a safe artifact retrieval and execution tool.
 
-> This repository contains a work in proress rewrite of `sget` in Rust.  
-> For the currently usable version of sget, please use the version from the [cosign repository](https://github.com/sigstore/cosign/blob/main/cmd/sget/)
+It's purpose is to provide a means to address common insecure download methods, such as using curl operations piped to bash, followed by shell script execution.
+
+The initial work involves the use of an OCI registry, however other storage methods are planned and we are open to suggestions from the community.
+
+> sget is based off the prototype [sget](https://github.com/sigstore/cosign/blob/main/cmd/sget/) repurposed in Rust.
 
 ## Security
 
