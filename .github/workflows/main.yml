@@ -57,14 +57,19 @@ jobs:
           run: sudo apt-get update && sudo apt-get install --no-install-recommends openssl; sudo apt-get install libssl-dev
           if: matrix.os == 'ubuntu-latest'
 
-        - name: Check Mac
+        - name: Cargo check Mac
           run: cargo check --all
           if: matrix.os == 'macOS-latest'
-        - uses: actions-rs/cargo@v1
+
+        - name: Cargo build Mac
+          uses: actions-rs/cargo@v1
+          if: matrix.os == 'macOS-latest'
           with:
             command: build
             args: --release --all-features
-        - uses: actions-rs/cargo@v1
+
+        - name: Cargo test Mac
+          uses: actions-rs/cargo@v1
           with:
             command: test
 
