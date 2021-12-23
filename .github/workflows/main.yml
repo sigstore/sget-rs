@@ -51,14 +51,35 @@ jobs:
           env:
             VCPKG_ROOT: 'C:\vcpkg'
 
+        - name: Check Windows
+          run: cargo check --all
+          if: matrix.os == 'windows-latest'
+              
+        - name: Cargo build Windows
+          uses: actions-rs/cargo@v1
+          if: matrix.os == 'windows-latest'
+            with:
+              command: build
+              args: --release --all-features
+          env: 
+            VCPKGRS_DYNAMIC: '1'
+            VCPKG_ROOT: 'C:\vcpkg'
+            OPENSSL_DIR: 'C:\vcpkg\installed\x64-windows-static'
+          
+        - name: Cargo test Windows
+          uses: actions-rs/cargo@v1
+          if: matrix.os == 'windows-latest'
+            with:
+              command: test
+          env: 
+            VCPKGRS_DYNAMIC: '1'
+            VCPKG_ROOT: 'C:\vcpkg'
+            OPENSSL_DIR: 'C:\vcpkg\installed\x64-windows-static'
+              
         ### FOR MAC ###
         - name: Install dependencies macOS
           run: brew update; brew install openssl
           if: matrix.os == 'macOS-latest'
-
-        - name: Install dependencies Ubuntu
-          run: sudo apt-get update && sudo apt-get install --no-install-recommends openssl; sudo apt-get install libssl-dev
-          if: matrix.os == 'ubuntu-latest'
 
         - name: Cargo check Mac
           run: cargo check --all
@@ -79,39 +100,27 @@ jobs:
 
 
         ### FOR LINUX ###
+        - name: Install dependencies Ubuntu
+          run: sudo apt-get update && sudo apt-get install --no-install-recommends openssl; sudo apt-get install libssl-dev
+          if: matrix.os == 'ubuntu-latest'
+        
         - name: Check Linux
           run: cargo check --all
           if: matrix.os == 'ubuntu-latest'
           
         - name: Cargo build Linux
           uses: actions-rs/cargo@v1
+          if: matrix.os == 'ubuntu-latest'
           with:
             command: build
             args: --release --all-features
           
         - name: Cargo test Linux
           uses: actions-rs/cargo@v1
+          if: matrix.os == 'ubuntu-latest'
           with:
             command: test
 
-              #        - name: Check Windows
-              #run: cargo check --all
-              #if: matrix.os == 'windows-latest'
-              #- uses: actions-rs/cargo@v1
-              #with:
-              #command: build
-              #args: --release --all-features
-              #env: 
-              #VCPKGRS_DYNAMIC: '1'
-              #VCPKG_ROOT: 'C:\vcpkg'
-              #OPENSSL_DIR: 'C:\vcpkg\installed\x64-windows-static'
-              #- uses: actions-rs/cargo@v1
-              #with:
-              #command: test
-              #env: 
-              #VCPKGRS_DYNAMIC: '1'
-              #VCPKG_ROOT: 'C:\vcpkg'
-              #OPENSSL_DIR: 'C:\vcpkg\installed\x64-windows-static'
 
   static_checks:
     runs-on: ubuntu-latest
