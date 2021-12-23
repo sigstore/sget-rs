@@ -57,7 +57,7 @@ jobs:
           env: 
             VCPKGRS_DYNAMIC: '1'
             VCPKG_ROOT: 'C:\vcpkg'
-            OPENSSL_DIR: 'C:\vcpkg\installed\x64-windows-static'
+              #OPENSSL_DIR: 'C:\vcpkg\installed\x64-windows-static'
               
         - name: Cargo build Windows
           uses: actions-rs/cargo@v1
@@ -68,7 +68,7 @@ jobs:
           env: 
             VCPKGRS_DYNAMIC: '1'
             VCPKG_ROOT: 'C:\vcpkg'
-            OPENSSL_DIR: 'C:\vcpkg\installed\x64-windows-static'
+              #OPENSSL_DIR: 'C:\vcpkg\installed\x64-windows-static'
           
         - name: Cargo test Windows
           uses: actions-rs/cargo@v1
@@ -78,7 +78,7 @@ jobs:
           env: 
             VCPKGRS_DYNAMIC: '1'
             VCPKG_ROOT: 'C:\vcpkg'
-            OPENSSL_DIR: 'C:\vcpkg\installed\x64-windows-static'
+              #OPENSSL_DIR: 'C:\vcpkg\installed\x64-windows-static'
               
         ### FOR MAC ###
         - name: Install dependencies macOS
