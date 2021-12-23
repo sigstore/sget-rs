@@ -25,6 +25,8 @@ jobs:
         - uses: actions-rs/toolchain@v1
           with:
             toolchain: stable
+
+        ### FOR WINDOWS ###
         - name: Cache vcpkg installed
           uses: actions/cache@v1.0.3
           if: matrix.os == 'windows-latest'
@@ -49,6 +51,7 @@ jobs:
           env:
             VCPKG_ROOT: 'C:\vcpkg'
 
+        ### FOR MAC ###
         - name: Install dependencies macOS
           run: brew update; brew install openssl
           if: matrix.os == 'macOS-latest'
@@ -72,17 +75,24 @@ jobs:
           uses: actions-rs/cargo@v1
           with:
             command: test
+          if: matrix.os == 'macOS-latest'
 
-            #- name: Check Linux
-            #run: cargo check --all
-            #if: matrix.os == 'ubuntu-latest'
-            #- uses: actions-rs/cargo@v1
-            #with:
-            #command: build
-            #args: --release --all-features
-            #- uses: actions-rs/cargo@v1
-            #with:
-            #command: test
+
+        ### FOR LINUX ###
+        - name: Check Linux
+          run: cargo check --all
+          if: matrix.os == 'ubuntu-latest'
+          
+        - name: Cargo build Linux
+          uses: actions-rs/cargo@v1
+          with:
+            command: build
+            args: --release --all-features
+          
+        - name: Cargo test Linux
+          uses: actions-rs/cargo@v1
+          with:
+            command: test
 
               #        - name: Check Windows
               #run: cargo check --all
