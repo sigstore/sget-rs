@@ -25,6 +25,8 @@ jobs:
         - uses: actions-rs/toolchain@v1
           with:
             toolchain: stable
+
+        ### FOR WINDOWS ###
         - name: Cache vcpkg installed
           uses: actions/cache@v1.0.3
           if: matrix.os == 'windows-latest'
@@ -49,21 +51,73 @@ jobs:
           env:
             VCPKG_ROOT: 'C:\vcpkg'
 
+        - name: Check Windows
+          run: cargo check --all
+          if: matrix.os == 'windows-latest'
+          env:
+            VCPKGRS_DYNAMIC: '1'
+            VCPKG_ROOT: 'C:\vcpkg'
+
+        - name: Cargo build Windows
+          uses: actions-rs/cargo@v1
+          if: matrix.os == 'windows-latest'
+          with:
+            command: build
+            args: --release --all-features
+          env:
+            VCPKGRS_DYNAMIC: '1'
+            VCPKG_ROOT: 'C:\vcpkg'
+
+        - name: Cargo test Windows
+          uses: actions-rs/cargo@v1
+          if: matrix.os == 'windows-latest'
+          with:
+            command: test
+          env:
+            VCPKGRS_DYNAMIC: '1'
+            VCPKG_ROOT: 'C:\vcpkg'
+
+        ### FOR MAC ###
         - name: Install dependencies macOS
           run: brew update; brew install openssl
           if: matrix.os == 'macOS-latest'
 
+        - name: Cargo check Mac
+          run: cargo check --all
+          if: matrix.os == 'macOS-latest'
+
+        - name: Cargo build Mac
+          uses: actions-rs/cargo@v1
+          if: matrix.os == 'macOS-latest'
+          with:
+            command: build
+            args: --release --all-features
+
+        - name: Cargo test Mac
+          uses: actions-rs/cargo@v1
+          with:
+            command: test
+          if: matrix.os == 'macOS-latest'
+
+        ### FOR LINUX ###
         - name: Install dependencies Ubuntu
           run: sudo apt-get update && sudo apt-get install --no-install-recommends openssl
           if: matrix.os == 'ubuntu-latest'
 
-        - name: check
+        - name: Check Linux
           run: cargo check --all
-        - uses: actions-rs/cargo@v1
+          if: matrix.os == 'ubuntu-latest'
+
+        - name: Cargo build Linux
+          uses: actions-rs/cargo@v1
+          if: matrix.os == 'ubuntu-latest'
           with:
             command: build
             args: --release --all-features
-        - uses: actions-rs/cargo@v1
+
+        - name: Cargo test Linux
+          uses: actions-rs/cargo@v1
+          if: matrix.os == 'ubuntu-latest'
           with:
             command: test
 
