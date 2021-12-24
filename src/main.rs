@@ -16,6 +16,7 @@
 mod oci;
 pub mod policy;
 mod utils;
+mod keys;
 
 use clap::{App, Arg};
 use std::env;
@@ -60,12 +61,46 @@ async fn main() {
                 .conflicts_with("noexec")
                 .about("Displays executing script's stdout to console"),
         )
+        .arg(
+            Arg::new("generate-keys")
+                .short('k')
+                .long("generate-keys")
+                .takes_value(false)
+                .conflicts_with("noexec")
+                .conflicts_with("interactive")
+                .conflicts_with("outfile")
+                .conflicts_with("oci-registry")
+                .about("Generate key pair"),
+        )
         .get_matches();
 
-    // TO DO: need better error handling in place of unwrap
+    // Generate keys for user. If successful, exit(0)
+    if matches.is_present("generate-keys") {
+        let pword = utils::password_prompt();
+        match pword {
+            Ok(pword) => {
+                let keygen = keys::generate_keys(pword);
+                match keygen {
+                Ok(_) => {
+                    println!("\nKeys generated successfully");
+                }
+                Err(e) => {
+                    println!("\nError generating keys: {}", e);
+                }
+            }
+                std::process::exit(0);
+            }
+            Err(e) => {
+                eprintln!("{}", e);
+                std::process::exit(1);
+            }
+        }
+    }
+
     let reference = matches
         .value_of("oci-registry")
         .expect("image reference failed");
+
     let outfile = matches.value_of("outfile").unwrap(); //#[allow_ci]
 
     let result = oci::blob_pull(reference, outfile).await;

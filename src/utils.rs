@@ -18,6 +18,18 @@ pub(crate) fn run_script(path: &str, interactive: bool) -> Result<ExitStatus, Er
     childproc.wait()
 }
 
+pub fn password_prompt() -> Result<String, Error> {
+    let pass1 = rpassword::read_password_from_tty(Some("Enter a password: "))?;
+    let pass2 = rpassword::read_password_from_tty(Some("Re-enter password: "))?;
+    if pass1 != pass2 {
+        return Err(Error::new(
+            std::io::ErrorKind::Other,
+            "Passwords do not match",
+        ));
+    }
+    Ok(pass1)
+}
+
 #[test]
 fn execute_script_fail() {
     assert_eq!(
@@ -35,3 +47,16 @@ fn execute_script_success() {
     let res = run_script(&dir.to_string_lossy(), false);
     assert!(res.unwrap().success()); //#[allow_ci]
 }
+
+
+// #[test]
+// fn password_prompt_success() {
+//     let res = password_prompt();
+//     assert!(res.unwrap().len() > 0);
+// }
+
+// #[test]
+// fn password_prompt_fail() {
+//     let res = password_prompt();
+//     assert!(res.is_err());
+// }
