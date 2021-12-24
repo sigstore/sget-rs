@@ -1309,6 +1309,7 @@ dependencies = [
  "clap 3.0.0-beta.5",
  "ecdsa",
  "oci-distribution",
+ "openssl",
  "p256",
  "serde",
  "serde_json",
