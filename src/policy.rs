@@ -2,6 +2,7 @@ use anyhow::{anyhow, Error, Result};
 use chrono::{DateTime, Utc};
 use ecdsa::signature::Verifier;
 use ecdsa::{Signature as OtherSignature, VerifyingKey};
+use openssl::{stack::Stack, x509::*};
 use p256::pkcs8::FromPublicKey;
 use serde::{Deserialize, Serialize};
 use serde_json::{value::RawValue, Value};
@@ -49,6 +50,35 @@ impl Policy {
         verification_key
             .verify(msg, &signature)
             .map_err(|e| anyhow!("Verification failed: {:?}", e))
+    }
+
+    pub fn verify_fulcio_chain(
+        &self,
+        root_cert: openssl::x509::X509,
+    ) -> Result<bool, anyhow::Error> {
+        let leaf_cert = base64::decode(&self.signatures[0].cert)?;
+        let leaf_cert = X509::from_pem(&leaf_cert)?;
+
+        // Check 1 : verifies that the leaf cert's issuer matches the root cert's subject field.
+        if root_cert.issued(&leaf_cert) != X509VerifyResult::OK {
+            return Ok(false);
+        }
+
+        let mut chain = Stack::new()?;
+        let _ = chain.push(leaf_cert.clone());
+
+        let mut store_bldr = store::X509StoreBuilder::new()?;
+        store_bldr.add_cert(root_cert)?;
+
+        let mut flags = openssl::x509::verify::X509VerifyFlags::empty();
+        flags.insert(openssl::x509::verify::X509VerifyFlags::NO_CHECK_TIME);
+        store_bldr.set_flags(flags)?;
+
+        let store = store_bldr.build();
+
+        // Check 2 : verifies that the leaf cert's issuer matches the root cert's subject field.
+        let mut context = X509StoreContext::new()?;
+        Ok(context.init(&store, &leaf_cert, &chain, |c| c.verify_cert())?)
     }
 }
 
@@ -242,5 +272,19 @@ mod tests {
 
         let outcome = policy.verify_signature(&pub_key.unwrap(), msg); //#[allow_ci]
         assert!(outcome.is_err());
+    }
+
+    // Note: open an issue about getting tests to run on Windows
+    #[test]
+    #[cfg(not(target_os = "windows"))]
+    fn validate_fulcio_cert_success() {
+        let setup = Setup::new();
+        let policy = setup.read_good_policy();
+
+        let root_cert = std::include_bytes!("../tests/test_data/fulcio_root.pem");
+        let root_cert = X509::from_pem(root_cert).unwrap(); //#[allow_ci]
+
+        let fulcio = policy.verify_fulcio_chain(root_cert).unwrap(); //#[allow_ci]
+        assert!(fulcio);
     }
 }
