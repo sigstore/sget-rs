@@ -101,9 +101,9 @@ jobs:
 
         ### FOR LINUX ###
         - name: Install dependencies Ubuntu
-          run: sudo apt-get update && sudo apt-get install --no-install-recommends openssl; sudo apt-get install libssl-dev
+          run: sudo apt-get update && sudo apt-get install --no-install-recommends openssl
           if: matrix.os == 'ubuntu-latest'
-        
+ 
         - name: Check Linux
           run: cargo check --all
           if: matrix.os == 'ubuntu-latest'
