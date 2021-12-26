@@ -81,20 +81,20 @@ async fn main() {
             Ok(pword) => {
                 let keygen = keys::generate_keys(pword);
                 match keygen {
-                Ok(_) => {
-                    println!("\nKeys generated successfully");
-                }
-                Err(e) => {
-                    println!("\nError generating keys: {}", e);
+                    Ok(_) => {
+                        println!("\nKeys generated successfully");
+                    }
+                    Err(e) => {
+                        println!("\nError generating keys: {}", e);
                 }
             }
-                std::process::exit(0);
             }
             Err(e) => {
                 eprintln!("{}", e);
                 std::process::exit(1);
             }
         }
+        std::process::exit(0);
     }
 
     let reference = matches
