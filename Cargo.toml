@@ -14,7 +14,7 @@ serde = {version = "1.0.130", features = ["derive"]}
 serde_plain = "1.0.0"
 serde_with = { version = "1.8.0", features = ["json"]}
 structopt = "0.3"
-oci-distribution = "0.7.0"
+oci-distribution = "0.8.0"
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 time = "0.1"
 base64 = "0.13.0"
