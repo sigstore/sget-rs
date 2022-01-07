@@ -1260,6 +1260,7 @@ dependencies = [
  "serde_plain",
  "serde_with",
  "structopt",
+ "tempfile",
  "time 0.3.5",
  "tokio",
  "x509-parser",

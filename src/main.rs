@@ -13,13 +13,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use tempfile::tempdir;
 mod oci;
 pub mod policy;
 mod utils;
 use clap::{App, Arg};
 use std::env;
+use std::fs;
 use std::fs::File;
 use std::io::Write;
+use std::os::unix::fs::PermissionsExt;
 
 // Example Usage: ./sget ghcr.io/jyotsna-penumaka/hello_sget:latest
 // This will fetch the contents and print them to stdout.
@@ -60,20 +63,26 @@ async fn main() {
     match result {
         Ok(data) => {
             if matches.is_present("exec") {
-                // TODO: Write to tempfile instead of overwriting this.
-                let mut dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-                dir.push("tests/test.sh");
+                // Write contents to a tempfile, make it executable, and execute it.
+                let dir = tempdir().expect("Failed to create tempdir");
+                let filepath = dir.path().join("sget-tmp.sh");
 
-                let mut f = File::create(&dir).expect("Failed to create file");
+                let mut f = File::create(&filepath).expect("Failed to create file");
+                let md = f.metadata().expect("Failed to get tempfile metadata");
+                let mut perms = md.permissions();
+                perms.set_mode(0o777); // Make the file executable.
+
                 f.write_all(&data[..]).expect("Failed to write data");
+                fs::set_permissions(&filepath, perms)
+                    .expect("Failed to set executable permissions");
 
-                utils::run_script(&dir.to_string_lossy()).expect("Execution failed");
+                utils::run_script(&filepath.to_string_lossy()).expect("Execution failed");
                 println!("Execution succeeded");
             } else if matches.is_present("outfile") {
                 let outfile = matches.value_of("outfile").expect("outfile is required");
                 let cwd = env::current_dir().expect("Failed to find current dir");
                 let mut file = File::create(cwd.join(outfile)).expect("Failed to create file");
-                file.write(&data).expect("Failed to write file");
+                file.write_all(&data).expect("Failed to write file");
             } else {
                 let str = String::from_utf8(data).expect("Failed to interpret data as UTF-8");
                 println!("{}", str); // Print to stdout.

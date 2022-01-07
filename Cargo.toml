@@ -23,3 +23,4 @@ p256 = {version = "0.9.0", features = ["ecdsa-core"]}
 ecdsa = { version = "0.12.4", features = ["verify", "pem", "der", "pkcs8"] }
 #[cfg(not(target_os = "windows"))]
 openssl = "0.10.38"
+tempfile = "3.2.0"
