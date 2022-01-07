@@ -26,6 +26,6 @@ fn execute_script_success() {
     let mut dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     dir.push("tests/test.sh");
 
-    let res = run_script(&dir.to_string_lossy());
-    assert!(res.unwrap().success()); //#[allow_ci]
+    let res = run_script(&dir.to_string_lossy()).expect("Execution falied");
+    assert!(res.success());
 }

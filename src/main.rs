@@ -52,31 +52,31 @@ async fn main() {
         )
         .get_matches();
 
-    // TODO: need better error handling in place of unwrap
     let reference = matches
         .value_of("oci-registry")
-        .expect("image reference failed");
+        .expect("OCI reference is required");
 
     let result = oci::blob_pull(reference).await;
     match result {
         Ok(data) => {
             if matches.is_present("exec") {
-                // Write to tmpfile and execute it.
+                // TODO: Write to tempfile instead of overwriting this.
                 let mut dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
                 dir.push("tests/test.sh");
 
-                let mut f = File::create(&dir).expect("Unable to create file");
-                f.write_all(&data[..]).expect("Unable to write data");
+                let mut f = File::create(&dir).expect("Failed to create file");
+                f.write_all(&data[..]).expect("Failed to write data");
 
-                utils::run_script(&dir.to_string_lossy()).expect("\n sget execution failed");
-                println!("\nsget execution succeeded");
+                utils::run_script(&dir.to_string_lossy()).expect("Execution failed");
+                println!("Execution succeeded");
             } else if matches.is_present("outfile") {
-                let outfile = matches.value_of("outfile").unwrap(); //#[allow_ci]
-                let cwd = env::current_dir().unwrap(); //#[allow_ci]
-                let file = File::create(cwd.join(outfile));
-                file.unwrap().write(&data).ok(); //#[allow_ci]
+                let outfile = matches.value_of("outfile").expect("outfile is required");
+                let cwd = env::current_dir().expect("Failed to find current dir");
+                let mut file = File::create(cwd.join(outfile)).expect("Failed to create file");
+                file.write(&data).expect("Failed to write file");
             } else {
-                println!("{}", String::from_utf8(data).unwrap()); //#[allow_ci] // Print to stdout.
+                let str = String::from_utf8(data).expect("Failed to interpret data as UTF-8");
+                println!("{}", str); // Print to stdout.
             }
         }
         Err(e) => {
