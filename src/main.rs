@@ -16,11 +16,13 @@
 mod oci;
 pub mod policy;
 mod utils;
-
 use clap::{App, Arg};
 use std::env;
+use std::fs::File;
+use std::io::Write;
 
-// Example Usage: ./sget --noexec --outfile file.sh ghcr.io/jyotsna-penumaka/hello_sget:latest
+// Example Usage: ./sget ghcr.io/jyotsna-penumaka/hello_sget:latest
+// This will fetch the contents and print them to stdout.
 
 #[tokio::main]
 async fn main() {
@@ -28,61 +30,57 @@ async fn main() {
         .version("0.1")
         .author("Sigstore Developers")
         .about("Secure script retrieval and execution")
-        .license("Apache-2.0")
         .arg(
             Arg::new("oci-registry")
-                .about("OCI registry namespace")
+                .help("OCI registry namespace")
+                .required(true)
                 .index(1),
         )
         .arg(
-            Arg::new("noexec")
-                .short('n')
-                .long("noexec")
+            Arg::new("exec")
+                .long("exec")
                 .takes_value(false)
-                .requires("oci-registry")
-                .requires("outfile")
-                .about("Do not execute script"),
+                .help("Execute script"),
         )
         .arg(
             Arg::new("outfile")
                 .short('f')
                 .long("outfile")
                 .value_name("OUT_FILE")
-                .requires("oci-registry")
-                .about("Save script to file")
+                .help("Save script to file")
                 .takes_value(true),
-        )
-        .arg(
-            Arg::new("interactive")
-                .short('i')
-                .long("interactive")
-                .takes_value(false)
-                .conflicts_with("noexec")
-                .about("Displays executing script's stdout to console"),
         )
         .get_matches();
 
-    // TO DO: need better error handling in place of unwrap
+    // TODO: need better error handling in place of unwrap
     let reference = matches
         .value_of("oci-registry")
         .expect("image reference failed");
-    let outfile = matches.value_of("outfile").unwrap(); //#[allow_ci]
 
-    let result = oci::blob_pull(reference, outfile).await;
+    let result = oci::blob_pull(reference).await;
     match result {
-        Ok(_) => {
-            println!("Successfully retrieved file");
+        Ok(data) => {
+            if matches.is_present("exec") {
+                // Write to tmpfile and execute it.
+                let mut dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+                dir.push("tests/test.sh");
+
+                let mut f = File::create(&dir).expect("Unable to create file");
+                f.write_all(&data[..]).expect("Unable to write data");
+
+                utils::run_script(&dir.to_string_lossy()).expect("\n sget execution failed");
+                println!("\nsget execution succeeded");
+            } else if matches.is_present("outfile") {
+                let outfile = matches.value_of("outfile").unwrap(); //#[allow_ci]
+                let cwd = env::current_dir().unwrap(); //#[allow_ci]
+                let file = File::create(cwd.join(outfile));
+                file.unwrap().write(&data).ok(); //#[allow_ci]
+            } else {
+                println!("{}", String::from_utf8(data).unwrap()); //#[allow_ci] // Print to stdout.
+            }
         }
         Err(e) => {
             println!("File retrieval failed: {}", e);
         }
-    }
-    if !matches.is_present("noexec") {
-        let mut dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        dir.push("tests/test.sh");
-
-        utils::run_script(&dir.to_string_lossy(), matches.is_present("interactive"))
-            .expect("\n sget execution failed");
-        println!("\nsget execution succeeded");
     }
 }
