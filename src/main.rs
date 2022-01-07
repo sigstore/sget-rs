@@ -70,11 +70,12 @@ async fn main() {
                 let mut f = File::create(&filepath).expect("Failed to create file");
                 let md = f.metadata().expect("Failed to get tempfile metadata");
                 let mut perms = md.permissions();
+                #[cfg(not(target_os = "windows"))] 
                 perms.set_mode(0o777); // Make the file executable.
-
-                f.write_all(&data[..]).expect("Failed to write data");
                 fs::set_permissions(&filepath, perms)
                     .expect("Failed to set executable permissions");
+
+                f.write_all(&data[..]).expect("Failed to write data");
 
                 utils::run_script(&filepath.to_string_lossy()).expect("Execution failed");
                 println!("Execution succeeded");
