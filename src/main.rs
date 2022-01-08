@@ -1,4 +1,3 @@
-//
 // Copyright 2021 The Sigstore Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,18 +16,21 @@ use tempfile::tempdir;
 mod oci;
 pub mod policy;
 mod utils;
+use anyhow::Result;
 use clap::{App, Arg};
 use std::env;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
+
+#[cfg(not(target_os = "windows"))]
 use std::os::unix::fs::PermissionsExt;
 
 // Example Usage: ./sget ghcr.io/jyotsna-penumaka/hello_sget:latest
 // This will fetch the contents and print them to stdout.
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), anyhow::Error> {
     let matches = App::new("sget")
         .version("0.1")
         .author("Sigstore Developers")
@@ -55,42 +57,37 @@ async fn main() {
         )
         .get_matches();
 
-    let reference = matches
-        .value_of("oci-registry")
-        .expect("OCI reference is required");
+    let reference = matches.value_of("oci-registry").unwrap_or("");
 
-    let result = oci::blob_pull(reference).await;
-    match result {
-        Ok(data) => {
-            if matches.is_present("exec") {
-                // Write contents to a tempfile, make it executable, and execute it.
-                let dir = tempdir().expect("Failed to create tempdir");
-                let filepath = dir.path().join("sget-tmp.sh");
+    let data = oci::blob_pull(reference).await?;
 
-                let mut f = File::create(&filepath).expect("Failed to create file");
-                let md = f.metadata().expect("Failed to get tempfile metadata");
-                let mut perms = md.permissions();
-                #[cfg(not(target_os = "windows"))] 
-                perms.set_mode(0o777); // Make the file executable.
-                fs::set_permissions(&filepath, perms)
-                    .expect("Failed to set executable permissions");
+    if matches.is_present("exec") {
+        // Write contents to a tempfile, make it executable, and execute it.
+        let dir = tempdir()?;
+        let filepath = dir.path().join("sget-tmp.sh");
 
-                f.write_all(&data[..]).expect("Failed to write data");
+        let mut f = File::create(&filepath)?;
+        let md = f.metadata()?;
+        let mut perms = md.permissions();
 
-                utils::run_script(&filepath.to_string_lossy()).expect("Execution failed");
-                println!("Execution succeeded");
-            } else if matches.is_present("outfile") {
-                let outfile = matches.value_of("outfile").expect("outfile is required");
-                let cwd = env::current_dir().expect("Failed to find current dir");
-                let mut file = File::create(cwd.join(outfile)).expect("Failed to create file");
-                file.write_all(&data).expect("Failed to write file");
-            } else {
-                let str = String::from_utf8(data).expect("Failed to interpret data as UTF-8");
-                println!("{}", str); // Print to stdout.
-            }
-        }
-        Err(e) => {
-            println!("File retrieval failed: {}", e);
-        }
+        // Setting executable mode only on non-Windows.
+        #[cfg(not(target_os = "windows"))]
+        perms.set_mode(0o777); // Make the file executable.
+
+        fs::set_permissions(&filepath, perms)?;
+
+        f.write_all(&data[..])?;
+
+        utils::run_script(&filepath.to_string_lossy()).expect("Execution failed");
+        println!("Execution succeeded");
+    } else if matches.is_present("outfile") {
+        let outfile = matches.value_of("outfile").unwrap_or("");
+        let cwd = env::current_dir()?;
+        let mut file = File::create(cwd.join(outfile))?;
+        file.write_all(&data)?;
+    } else {
+        let str = String::from_utf8(data)?;
+        println!("{}", str); // Print to stdout.
     }
+    anyhow::Ok(())
 }
