@@ -18,8 +18,12 @@ mod utils;
 use anyhow::Result;
 use clap::{App, Arg};
 use std::env;
+use std::fs;
 use std::fs::File;
 use std::io::Write;
+
+#[cfg(not(target_os = "windows"))]
+use std::os::unix::fs::PermissionsExt;
 
 // Example Usage: ./sget ghcr.io/jyotsna-penumaka/hello_sget:latest
 // This will fetch the contents and print them to stdout.
@@ -62,6 +66,13 @@ async fn main() -> Result<(), anyhow::Error> {
         file.write_all(&data[..])?;
 
         if matches.is_present("exec") {
+            let md = file.metadata()?;
+            let mut perms = md.permissions();
+            // Setting executable mode only on non-Windows.
+            #[cfg(not(target_os = "windows"))]
+            perms.set_mode(0o777); // Make the file executable.
+            fs::set_permissions(&filepath, perms)?;
+
             utils::run_script(&filepath.to_string_lossy()).expect("Execution failed");
             eprintln!("\n\nExecution succeeded");
         }
