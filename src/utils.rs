@@ -1,15 +1,9 @@
 use std::io::Error;
-use std::process::{Command, ExitStatus, Stdio};
+use std::process::{Command, ExitStatus};
 
 pub(crate) fn run_script(path: &str) -> Result<ExitStatus, Error> {
-    let mut childproc = Command::new(path)
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()?;
-
-    // Returns exit code of child process, or an error
-    childproc.wait()
+    // Returns exit code of child process, or an error.
+    Command::new(path).spawn()?.wait()
 }
 
 #[test]
