@@ -1,10 +1,7 @@
 use anyhow::Result;
 use oci_distribution::{client, secrets::RegistryAuth, Client, Reference};
-use std::env;
-use std::fs::File;
-use std::io::Write;
 
-pub async fn blob_pull(reference: &str, file_name: &str) -> Result<(), anyhow::Error> {
+pub async fn blob_pull(reference: &str) -> Result<Vec<u8>, anyhow::Error> {
     let reference: Reference = reference.parse().expect("Invalid reference");
     let config = client::ClientConfig {
         protocol: client::ClientProtocol::Https,
@@ -23,12 +20,7 @@ pub async fn blob_pull(reference: &str, file_name: &str) -> Result<(), anyhow::E
         .next()
         .map(|layer| layer.data);
     match image {
-        Some(image) => {
-            let cwd = env::current_dir()?;
-            let file = File::create(cwd.join(file_name));
-            file.unwrap().write_all(&image[..]).ok(); //#[allow_ci]
-            Ok(())
-        }
-        None => Err(anyhow::anyhow!("Failed to processs file")),
+        Some(data) => Ok(data),
+        None => Err(anyhow::anyhow!("Failed to fetch blob")), // TODO: Better error message.
     }
 }

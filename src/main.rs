@@ -1,4 +1,3 @@
-//
 // Copyright 2021 The Sigstore Authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,73 +15,70 @@
 mod oci;
 pub mod policy;
 mod utils;
-
+use anyhow::Result;
 use clap::{App, Arg};
 use std::env;
+use std::fs;
+use std::fs::File;
+use std::io::Write;
 
-// Example Usage: ./sget --noexec --outfile file.sh ghcr.io/jyotsna-penumaka/hello_sget:latest
+#[cfg(not(target_os = "windows"))]
+use std::os::unix::fs::PermissionsExt;
+
+// Example Usage: ./sget ghcr.io/jyotsna-penumaka/hello_sget:latest
+// This will fetch the contents and print them to stdout.
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), anyhow::Error> {
     let matches = App::new("sget")
         .version("0.1")
         .author("Sigstore Developers")
         .about("Secure script retrieval and execution")
-        .license("Apache-2.0")
         .arg(
-            Arg::new("oci-registry")
-                .about("OCI registry namespace")
+            Arg::new("ref")
+                .help("OCI image reference")
+                .required(true)
                 .index(1),
         )
         .arg(
-            Arg::new("noexec")
-                .short('n')
-                .long("noexec")
+            Arg::new("exec")
+                .long("exec")
                 .takes_value(false)
-                .requires("oci-registry")
                 .requires("outfile")
-                .about("Do not execute script"),
+                .help("Execute script"),
         )
         .arg(
             Arg::new("outfile")
                 .short('f')
                 .long("outfile")
                 .value_name("OUT_FILE")
-                .requires("oci-registry")
-                .about("Save script to file")
+                .help("Save script to file")
                 .takes_value(true),
-        )
-        .arg(
-            Arg::new("interactive")
-                .short('i')
-                .long("interactive")
-                .takes_value(false)
-                .conflicts_with("noexec")
-                .about("Displays executing script's stdout to console"),
         )
         .get_matches();
 
-    // TO DO: need better error handling in place of unwrap
-    let reference = matches
-        .value_of("oci-registry")
-        .expect("image reference failed");
-    let outfile = matches.value_of("outfile").unwrap(); //#[allow_ci]
+    let data = oci::blob_pull(matches.value_of("ref").unwrap_or("")).await?;
 
-    let result = oci::blob_pull(reference, outfile).await;
-    match result {
-        Ok(_) => {
-            println!("Successfully retrieved file");
-        }
-        Err(e) => {
-            println!("File retrieval failed: {}", e);
-        }
-    }
-    if !matches.is_present("noexec") {
-        let mut dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        dir.push("tests/test.sh");
+    if matches.is_present("outfile") {
+        // TODO: Support absolute outfile paths.
+        let filepath = env::current_dir()?.join(matches.value_of("outfile").unwrap_or(""));
+        let mut file = File::create(&filepath)?;
+        file.write_all(&data[..])?;
 
-        utils::run_script(&dir.to_string_lossy(), matches.is_present("interactive"))
-            .expect("\n sget execution failed");
-        println!("\nsget execution succeeded");
+        if matches.is_present("exec") {
+            let md = file.metadata()?;
+            let mut perms = md.permissions();
+            // Setting executable mode only on non-Windows.
+            #[cfg(not(target_os = "windows"))]
+            perms.set_mode(0o777); // Make the file executable.
+            fs::set_permissions(&filepath, perms)?;
+
+            utils::run_script(&filepath.to_string_lossy()).expect("Execution failed");
+            eprintln!("\n\nExecution succeeded");
+        }
+    } else {
+        println!("{}", String::from_utf8(data)?); // Print to stdout.
     }
+
+    anyhow::Ok(())
 }
