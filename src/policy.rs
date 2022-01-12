@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use ecdsa::signature::Verifier;
 use ecdsa::{Signature as OtherSignature, VerifyingKey};
 use openssl::{stack::Stack, x509::*};
-use p256::pkcs8::FromPublicKey;
+use p256::pkcs8::DecodePublicKey;
 use serde::{Deserialize, Serialize};
 use serde_json::{value::RawValue, Value};
 use serde_plain::{derive_display_from_serialize, derive_fromstr_from_deserialize};
