@@ -24,6 +24,7 @@ use std::io::Write;
 
 #[cfg(not(target_os = "windows"))]
 use std::os::unix::fs::PermissionsExt;
+use std::path::Path;
 
 // Example Usage: ./sget ghcr.io/jyotsna-penumaka/hello_sget:latest
 // This will fetch the contents and print them to stdout.
@@ -59,9 +60,16 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let data = oci::blob_pull(matches.value_of("ref").unwrap_or("")).await?;
 
-    if matches.is_present("outfile") {
-        // TODO: Support absolute outfile paths.
-        let filepath = env::current_dir()?.join(matches.value_of("outfile").unwrap_or(""));
+    if let Some(outfile) = matches.value_of("outfile") {
+        let filepath = {
+            let p = Path::new(outfile);
+            if p.is_absolute() {
+                p.into()
+            } else {
+                env::current_dir()?.join(outfile)
+            }
+        };
+
         let mut file = File::create(&filepath)?;
         file.write_all(&data[..])?;
 
