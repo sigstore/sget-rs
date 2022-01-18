@@ -19,7 +19,7 @@ tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 time = "0.3"
 base64 = "0.13.0"
 x509-parser = "0.12.0"
-p256 = {version = "0.10.0", features = ["ecdsa-core"]}
+p256 = {version = "0.10.1", features = ["ecdsa-core"]}
 ecdsa = { version = "0.13.4", features = ["verify", "pem", "der", "pkcs8"] }
 #[cfg(not(target_os = "windows"))]
 openssl = "0.10.38"
