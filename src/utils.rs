@@ -1,21 +1,9 @@
 use std::io::Error;
-use std::process::{Command, ExitStatus, Stdio};
+use std::process::{Command, ExitStatus};
 
-pub(crate) fn run_script(path: &str, interactive: bool) -> Result<ExitStatus, Error> {
-    // TODO: we can feed in args for the script by using the following
-    // command.arg("some-flag");
-    let mut childproc = if interactive {
-        Command::new(path).spawn()?
-    } else {
-        Command::new(path)
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()?
-    };
-
-    // Returns exit code of child process, or an error
-    childproc.wait()
+pub(crate) fn run_script(path: &str) -> Result<ExitStatus, Error> {
+    // Returns exit code of child process, or an error.
+    Command::new(path).spawn()?.wait()
 }
 
 pub fn password_prompt() -> Result<String, Error> {
@@ -33,7 +21,7 @@ pub fn password_prompt() -> Result<String, Error> {
 #[test]
 fn execute_script_fail() {
     assert_eq!(
-        run_script("i_dont_exist.txt", false).unwrap_err().kind(),
+        run_script("i_dont_exist.txt").unwrap_err().kind(),
         std::io::ErrorKind::NotFound
     );
 }
@@ -44,8 +32,8 @@ fn execute_script_success() {
     let mut dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     dir.push("tests/test.sh");
 
-    let res = run_script(&dir.to_string_lossy(), false);
-    assert!(res.unwrap().success()); //#[allow_ci]
+    let res = run_script(&dir.to_string_lossy()).expect("Execution falied");
+    assert!(res.success());
 }
 
 
