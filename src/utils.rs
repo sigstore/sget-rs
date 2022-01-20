@@ -47,7 +47,6 @@ fn execute_script_success() {
     assert!(res.success());
 }
 
-
 // #[test]
 // fn password_prompt_success() {
 //     let res = password_prompt();

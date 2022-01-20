@@ -67,7 +67,7 @@ async fn main() -> Result<(), anyhow::Error> {
                 .help("Generate key pair"),
         )
         .arg(
-                Arg::new("interactive")
+            Arg::new("interactive")
                 .short('i')
                 .long("interactive")
                 .takes_value(false)
@@ -87,8 +87,8 @@ async fn main() -> Result<(), anyhow::Error> {
                     }
                     Err(e) => {
                         println!("\nError generating keys: {}", e);
+                    }
                 }
-            }
             }
             Err(e) => {
                 eprintln!("{}", e);

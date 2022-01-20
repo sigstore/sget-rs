@@ -14,19 +14,10 @@
 // limitations under the License.
 
 use openssl::nid::Nid;
-use openssl::{
-    ec::EcGroup, ec::EcKey
-};
+use openssl::symm::Cipher;
+use openssl::{ec::EcGroup, ec::EcKey};
 use std::fs::File;
 use std::io::Write;
-use openssl::symm::Cipher;
-
-// Sigstore relies on NIST P-256
-// NIST P-256 is a Weierstrass curve specified in FIPS 186-4: Digital Signature Standard (DSS):
-// https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-4.pdf
-// Also known as prime256v1 (ANSI X9.62) and secp256r1 (SECG)
-// openssl dgst -sha1 -sign sget.key file.txt > signature
-// openssl dgst -sha1 -verify sget.pub -signature signature file.txt
 
 pub fn generate_keys(passw: String) -> Result<(), Box<dyn std::error::Error>> {
     let group = EcGroup::from_curve_name(Nid::X9_62_PRIME256V1)?;
@@ -39,7 +30,8 @@ pub fn generate_keys(passw: String) -> Result<(), Box<dyn std::error::Error>> {
             private_key_pem = private_key.private_key_to_pem()?;
         }
         false => {
-            private_key_pem = private_key.private_key_to_pem_passphrase(Cipher::aes_128_cbc(), passw.as_bytes())?;
+            private_key_pem = private_key
+                .private_key_to_pem_passphrase(Cipher::aes_128_cbc(), passw.as_bytes())?;
         }
     }
 
@@ -55,7 +47,6 @@ pub fn generate_keys(passw: String) -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
-
 
 #[test]
 fn test_generate_keys() {
