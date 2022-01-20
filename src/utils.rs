@@ -50,7 +50,7 @@ fn execute_script_success() {
 // #[test]
 // fn password_prompt_success() {
 //     let res = password_prompt();
-//     assert!(res.unwrap().len() > 0);
+//     assert!(res.unwrap().len() > 0); //#[allow_ci]
 // }
 
 // #[test]
