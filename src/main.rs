@@ -80,7 +80,6 @@ async fn main() -> Result<(), anyhow::Error> {
         let mut file = File::create(&filepath)?;
         file.write_all(&data[..])?;
 
-
         if matches.is_present("exec") {
             let md = file.metadata()?;
             let mut perms = md.permissions();
