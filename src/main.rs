@@ -66,6 +66,13 @@ async fn main() -> Result<(), anyhow::Error> {
                 .conflicts_with("outfile")
                 .help("Generate key pair"),
         )
+        .arg(
+                Arg::new("interactive")
+                .short('i')
+                .long("interactive")
+                .takes_value(false)
+                .help("Displays executing script's stdout to console"),
+        )
         .get_matches();
 
     // Generate keys for user. If successful, exit(0)
@@ -114,7 +121,11 @@ async fn main() -> Result<(), anyhow::Error> {
             perms.set_mode(0o777); // Make the file executable.
             fs::set_permissions(&filepath, perms)?;
 
-            utils::run_script(&filepath.to_string_lossy()).expect("Execution failed");
+            utils::run_script(
+                &filepath.to_string_lossy(),
+                matches.is_present("interactive"),
+            )
+            .expect("Execution failed");
             eprintln!("\n\nExecution succeeded");
         }
     } else {
