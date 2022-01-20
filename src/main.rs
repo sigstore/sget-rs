@@ -80,6 +80,7 @@ async fn main() -> Result<(), anyhow::Error> {
         let mut file = File::create(&filepath)?;
         file.write_all(&data[..])?;
 
+
         if matches.is_present("exec") {
             let md = file.metadata()?;
             let mut perms = md.permissions();
@@ -87,6 +88,7 @@ async fn main() -> Result<(), anyhow::Error> {
             #[cfg(not(target_os = "windows"))]
             perms.set_mode(0o777); // Make the file executable.
             fs::set_permissions(&filepath, perms)?;
+            drop(file);
 
             utils::run_script(
                 &filepath.to_string_lossy(),
