@@ -87,6 +87,7 @@ async fn main() -> Result<(), anyhow::Error> {
             #[cfg(not(target_os = "windows"))]
             perms.set_mode(0o777); // Make the file executable.
             fs::set_permissions(&filepath, perms)?;
+            drop(file);
 
             utils::run_script(
                 &filepath.to_string_lossy(),
