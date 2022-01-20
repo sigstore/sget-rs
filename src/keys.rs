@@ -48,7 +48,7 @@ pub fn generate_keys(passw: String) -> Result<(), Box<dyn std::error::Error>> {
     let public_key_pem = &ec_pub_key.public_key_to_pem()?;
 
     let mut privkey_file = File::create("sget.key")?;
-    privkey_file.write_all(String::from_utf8(private_key_pem.clone())?.as_bytes())?;
+    privkey_file.write_all(String::from_utf8(private_key_pem)?.as_bytes())?;
 
     let mut pubkey_file = File::create("sget.pub")?;
     pubkey_file.write_all(String::from_utf8(public_key_pem.clone())?.as_bytes())?;
